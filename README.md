@@ -1,1 +1,1 @@
-# suplementary-data-for-brucellosis-model
+# Suplementary data for brucellosis model
