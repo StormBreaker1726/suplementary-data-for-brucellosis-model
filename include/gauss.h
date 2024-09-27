@@ -5,6 +5,6 @@
 #include "defines.h"
 #include "tissue.h"
 
-real_cpu gaussian_quadrature(real_cpu a, real_cpu b);
+void tissue_integration(ts *tissue_here, real_cpu *Antibody_tissue, real_cpu *APC_a_tissue, real_cpu *integral);
 
 #endif /* GAUSS_C_CODE */

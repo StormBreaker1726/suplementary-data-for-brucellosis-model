@@ -1,6 +1,6 @@
 #include "../include/mesh.h"
 
-void generate_mesh(unsigned sx, unsigned sy, unsigned dif)
+void generate_mesh(unsigned sx, unsigned sy, unsigned length_x, unsigned length_y, unsigned dif)
 {
     char mesh_file_path[80];
 
@@ -24,6 +24,9 @@ void generate_mesh(unsigned sx, unsigned sy, unsigned dif)
     mesh *new_mesh  = (mesh *)malloc(sizeof(mesh));
     new_mesh->cells = (points *)malloc((sx * sy) * sizeof(points));
 
+    unsigned qtd_blood = 0;
+    unsigned qtd_linf  = 0;
+
     for (size_t i = 0; i < sx; i++)
     {
         for (size_t j = 0; j < sy; j++)
@@ -33,11 +36,13 @@ void generate_mesh(unsigned sx, unsigned sy, unsigned dif)
             new_mesh->cells[i * sy + j].jy = j;
             if (num <= 0.15)
             {
-                new_mesh->cells[i * sy + j].type = 0;
+                new_mesh->cells[i * sy + j].type = 1;
+                qtd_blood++;
             }
             else if (num > 0.15 && num <= 0.17)
             {
-                new_mesh->cells[i * sy + j].type = 1;
+                new_mesh->cells[i * sy + j].type = 0;
+                qtd_linf++;
             }
             else
             {
@@ -45,6 +50,13 @@ void generate_mesh(unsigned sx, unsigned sy, unsigned dif)
             }
         }
     }
+
+    new_mesh->qtd_blood = qtd_blood;
+    new_mesh->qtd_linf  = qtd_linf;
+    new_mesh->length_x  = length_x;
+    new_mesh->length_y  = length_y;
+
+    fprintf(msh_file, "length x = %d\nlength y = %d\nblood vessels = %d\nlymphatic vessels = %d\n", length_x, length_y, qtd_blood, qtd_linf);
 
     for (size_t i = 0; i < sx; i++)
     {
@@ -64,6 +76,42 @@ void generate_mesh(unsigned sx, unsigned sy, unsigned dif)
     free(new_mesh);
 }
 
+// void read_mesh_from_file(mesh *to_save, const char *mesh_file_path)
+// {
+//     // TODO modificar essa função para ler a nova malha
+//     FILE *file = fopen(mesh_file_path, "r");
+//     if (file == NULL)
+//     {
+//         perror("Erro ao abrir o arquivo");
+//         exit(EXIT_FAILURE);
+//     }
+//     // printf("Line = %d\n", __LINE__);
+//     // Leitura das dimensões sx e sy
+//     fscanf(file, "mesh for brucella abortus simulation\n");
+//     // printf("Line = %d\n", __LINE__);
+//     fscanf(file, "sx = %u\n", &(to_save->sx));
+//     // printf("Line = %d\n", __LINE__);
+//     fscanf(file, "sy = %u\n", &(to_save->sy));
+//     // printf("Line = %d\n", __LINE__);
+//     // printf("Line = %d\n", __LINE__);
+//     // Alocação dinâmica de memória para o vetor cells
+//     to_save->cells = (points *)malloc(to_save->sx * to_save->sy * sizeof(points));
+//     if (to_save->cells == NULL)
+//     {
+//         perror("Erro ao alocar memória para cells");
+//         fclose(file);
+//         exit(EXIT_FAILURE);
+//     }
+
+//     // Leitura das coordenadas e do tipo para cada célula
+//     for (unsigned i = 0; i < to_save->sx * to_save->sy; ++i)
+//     {
+//         fscanf(file, "ix = %u, jy = %u, type = %u\n", &(to_save->cells[i].ix), &(to_save->cells[i].jy), &(to_save->cells[i].type));
+//     }
+
+//     fclose(file);
+// }
+
 void read_mesh_from_file(mesh *to_save, const char *mesh_file_path)
 {
     FILE *file = fopen(mesh_file_path, "r");
@@ -72,15 +120,21 @@ void read_mesh_from_file(mesh *to_save, const char *mesh_file_path)
         perror("Erro ao abrir o arquivo");
         exit(EXIT_FAILURE);
     }
-    // printf("Line = %d\n", __LINE__);
+
     // Leitura das dimensões sx e sy
     fscanf(file, "mesh for brucella abortus simulation\n");
-    // printf("Line = %d\n", __LINE__);
-    fscanf(file, "sx = %u\n", &(to_save->sx));
-    // printf("Line = %d\n", __LINE__);
-    fscanf(file, "sy = %u\n", &(to_save->sy));
-    // printf("Line = %d\n", __LINE__);
-    // printf("Line = %d\n", __LINE__);
+
+    fscanf(file, "sx = %d\n", &(to_save->sx));
+    fscanf(file, "sy = %d\n", &(to_save->sy));
+
+    // Leitura dos comprimentos do tecido em x e y
+    fscanf(file, "length x = %f\n", &(to_save->length_x));
+    fscanf(file, "length y = %f\n", &(to_save->length_y));
+
+    // Leitura da quantidade de vasos sanguíneos e linfáticos
+    fscanf(file, "blood vessels = %d\n", &(to_save->qtd_blood));
+    fscanf(file, "lymphatic vessels = %d\n", &(to_save->qtd_linf));
+
     // Alocação dinâmica de memória para o vetor cells
     to_save->cells = (points *)malloc(to_save->sx * to_save->sy * sizeof(points));
     if (to_save->cells == NULL)

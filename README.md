@@ -1,1 +1,1 @@
-# Suplementary data for brucellosis model
+# Computational-Model-for-Brucella-abortus

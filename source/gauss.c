@@ -1,34 +1,31 @@
 #include "../include/gauss.h"
 
-real_cpu f(real_cpu x)
+void tissue_integration(ts *tissue_here, real_cpu *Antibody_tissue, real_cpu *APC_a_tissue, real_cpu *integral)
 {
-    return 0;
-}
+    integral[0] = 0.0f;
+    integral[1] = 0.0f;
 
-real_cpu gaussian_quadrature(real_cpu a, real_cpu b)
-{
-    real_cpu points[] = { 0,
-                          (1.0f / 3.0f * sqrt(5.0f - 2.0f * sqrt(10.0f / 7.0f))),
-                          -(1.0f / 3.0f * sqrt(5.0f - 2.0f * sqrt(10.0f / 7.0f))),
-                          (1.0f / 3.0f * sqrt(5.0f + 2.0f * sqrt(10.0f / 7.0f))),
-                          -(1.0f / 3.0f * sqrt(5.0f + 2.0f * sqrt(10.0f / 7.0f))) };
+    real_cpu integral_blood, integral_linf;
 
-    real_cpu weights[] = { (128.0f / 225.0f),
-                           ((322.0f + 13.0f * sqrt(70.0f)) / 900.0f),
-                           ((322.0f + 13.0f * sqrt(70.0f)) / 900.0f),
-                           ((322.0f - 13.0f * sqrt(70.0f)) / 900.0f),
-                           ((322.0f - 13.0f * sqrt(70.0f)) / 900.0f) };
+    integral_blood = 0.0;
+    integral_linf  = 0.0f;
 
-    real_cpu approx          = 0;
-    real_cpu interval_change = (b - a) / 2.0f;
-    real_cpu interval_center = (b + a) / 2.0f;
-
-    for (size_t i = 0; i < 5; i++)
+    for (size_t i = 0; i < tissue_here->tissue_mesh->sx; i++)
     {
-        approx += weights[i] * f(interval_change * points[i] + interval_center);
+        for (size_t j = 0; j < tissue_here->tissue_mesh->sy; j++)
+        {
+            integral_blood += (tissue_here->tissue_mesh->cells[i * tissue_here->tissue_mesh->sy + j].type == 1) ?
+                                  Antibody_tissue[i * tissue_here->tissue_mesh->sy + j] :
+                                  0.0f;
+
+            integral_linf +=
+                (tissue_here->tissue_mesh->cells[i * tissue_here->tissue_mesh->sy + j].type == 0) ? APC_a_tissue[i * tissue_here->tissue_mesh->sy + j] : 0.0f;
+        }
     }
 
-    approx *= interval_change;
+    integral_blood = integral_blood * (1.0f / (tissue_here->tissue_mesh->qtd_blood));
+    integral_linf  = integral_linf * (1.0f / (tissue_here->tissue_mesh->qtd_linf));
 
-    return approx;
+    integral[0] = integral_blood;
+    integral[1] = integral_linf;
 }
